@@ -1,0 +1,714 @@
+================================================================================
+CLINICAL PHARMACOLOGY MODELING & SIMULATION - INTERVIEW PREP
+Grad Intern Position at Amgen
+================================================================================
+
+================================================================================
+1. MATHEMATICAL FOUNDATIONS
+================================================================================
+
+
+ORDINARY DIFFERENTIAL EQUATIONS (ODEs)
+───────────────────────────────────────
+Definition: An equation involving derivatives of unknown functions.
+General form: dy/dt = f(y, t)
+
+Example (exponential decay - drug elimination):
+  dC/dt = -k*C
+  
+  Solution: C(t) = C₀ * e^(-k*t)
+  
+  Interpretation:
+  - C(t): concentration at time t
+  - k: elimination rate constant
+  - C₀: initial concentration
+
+LINEAR VS NONLINEAR ODES
+───────────────────────
+Linear ODE: dC/dt = -k*C (solution can be computed analytically)
+Nonlinear ODE: dC/dt = -C²/(V+C) (requires numerical methods)
+
+SYSTEMS OF ODEs
+────────────────
+Multi-compartment models involve multiple coupled ODEs:
+
+Example (2-compartment):
+  dC_central/dt = -(k₁₂ + k_e)*C_central + k₂₁*C_peripheral
+  dC_peripheral/dt = k₁₂*C_central - k₂₁*C_peripheral
+
+Where:
+  - k₁₂: transfer rate from central to peripheral
+  - k₂₁: transfer rate from peripheral to central  
+  - k_e: elimination rate from central compartment
+
+KEY TERMS:
+──────────
+• Compartment: Hypothetical space where drug distributes homogeneously
+• First-order kinetics: Elimination rate proportional to concentration (linear)
+• Zero-order kinetics: Constant elimination rate regardless of concentration
+• Bioavailability (F): Fraction of dose that reaches systemic circulation
+• Volume of Distribution (V): Theoretical volume drug distributes into
+• Half-life (t₁/₂): Time for concentration to drop to half: t₁/₂ = 0.693/k_e
+• Clearance (CL): Volume of plasma cleared per unit time: CL = k_e * V
+• Area Under Curve (AUC): Total drug exposure over time
+
+
+================================================================================
+2. PHARMACODYNAMICS CONCEPTS
+================================================================================
+
+
+PHARMACODYNAMICS (PD) - HOW DRUGS AFFECT THE BODY
+──────────────────────────────────────────────────
+
+Common PD Models:
+
+1. EMAX MODEL (Most common)
+   E = E_max * C / (EC₅₀ + C)
+   
+   Where:
+   - E: effect (0 to E_max)
+   - C: drug concentration
+   - E_max: maximum effect
+   - EC₅₀: concentration at 50% E_max
+   
+   Use: Dose-response relationships, tumor growth inhibition
+
+2. INDIRECT RESPONSE MODEL
+   dE/dt = k_in - k_out*E + (PD effect)*C
+   
+   Use: When drug doesn't directly affect biomarker but affects 
+   production/elimination
+
+3. TUMOR GROWTH INHIBITION (TGI)
+   dT/dt = λ*T - k_kill*C*T
+   
+   Where:
+   - T: tumor burden
+   - λ: growth rate
+   - k_kill: drug-induced killing rate
+   - C: drug concentration
+
+PHARMACOKINETIC-PHARMACODYNAMIC (PK/PD) LINK
+──────────────────────────────────────────────
+Connects drug concentration (PK) to biological effect (PD)
+
+Example workflow:
+1. Drug absorption/distribution/elimination (PK model)
+   ↓ Predicts C(t)
+2. Drug effect on target (PD model)
+   ↓ Uses C(t) as input
+3. Biomarker/clinical outcome response (disease model)
+   ↓ Final observable outcome
+
+This is the core work of clinical pharmacology modeling!
+
+
+================================================================================
+3. MODELING WORKFLOW
+================================================================================
+
+
+STEP 1: PROBLEM DEFINITION
+──────────────────────────
+Questions to ask:
+- What is the biological/clinical question?
+- What data do we have? (sample sizes, collection times, biomarkers)
+- What are the assumptions? (linear/nonlinear, homogeneous/heterogeneous)
+- What is the purpose? (dose justification, simulation, prediction)
+
+STEP 2: MODEL STRUCTURE SELECTION
+──────────────────────────────────
+Start simple, add complexity as needed:
+
+Simple models:
+- One-compartment PK: dC/dt = -k_e*C + (input term)
+- Linear PD: E = E_max * C / (EC₅₀ + C)
+
+Intermediate:
+- Two-compartment PK: adds peripheral distribution
+- Indirect response: models biomarker dynamics
+
+Complex:
+- Nonlinear PK: Michaelis-Menten elimination
+- Multi-population models: accommodate disease progression
+- Stochastic models: incorporate random variability
+
+Selection criteria:
+✓ Use simplest model that explains the data
+✓ Avoid overfitting (too many parameters for data quality)
+✓ Compare models using AIC, BIC, likelihood ratio tests
+
+STEP 3: WRITE THE EQUATIONS
+────────────────────────────
+Example 1: One-compartment with first-order absorption
+  Dose → Absorption compartment → Central compartment → Elimination
+  
+  dA_abs/dt = -k_a * A_abs
+  dC_central/dt = (k_a * A_abs)/V - k_e * C_central
+  
+  Output: C_central(t) (what we measure)
+
+Example 2: Two-compartment with effect
+  dC_c/dt = -(k₁₂ + k_e)*C_c + k₂₁*C_p + (input)/V_c
+  dC_p/dt = k₁₂*C_c - k₂₁*C_p
+  dE/dt = k_in - k_out*E + (Emax*C_c/(EC50+C_c) - baseline)*f
+  
+  where C_c = central, C_p = peripheral, E = effect
+
+STEP 4: PARAMETER ESTIMATION (FITTING)
+────────────────────────────────────────
+Goal: Find parameter values that make predicted data match observed data
+
+Methods:
+1. Least Squares (most common)
+   Minimize: Σ(observed - predicted)²
+   
+2. Maximum Likelihood
+   Maximize probability of observing data given parameters
+   Accounts for measurement error structure
+   
+3. Weighted Least Squares
+   Minimize: Σ w_i*(observed - predicted)²
+   Where w_i = 1/variance_i (give more weight to precise measurements)
+
+Optimization algorithms:
+- Local: Nelder-Mead, Powell, BFGS (fast, may get stuck in local minimum)
+- Global: Differential evolution, genetic algorithms (thorough, slower)
+
+STEP 5: MODEL VALIDATION
+─────────────────────────
+Tests performed:
+1. Goodness-of-fit: R², RMSE, visual inspection
+2. Diagnostic plots: residuals should be randomly scattered around zero
+3. Parameter uncertainty: confidence intervals, correlation matrices
+4. External validation: test on independent data (gold standard)
+5. Sensitivity analysis: how much do results change with parameter changes?
+
+Red flags (suggests model issues):
+✗ Non-random residual patterns (systematic bias)
+✗ Large parameter correlation (multicollinearity)
+✗ Unrealistic parameter values (e.g., V = 0.01 L)
+✗ Very high standard errors (unstable parameter estimates)
+✗ Failed convergence (optimization didn't find solution)
+
+STEP 6: INTERPRETATION & COMMUNICATION
+────────────────────────────────────────
+Results should answer original questions:
+- "What dose do we need?" → Use model to predict dose-response
+- "Why does this patient respond differently?" → Population variability
+- "What are side effects at this dose?" → PK/PD for safety biomarkers
+- "Will drug interact with food/other drugs?" → Simulate altered PK
+
+Communicate to non-modelers:
+- Create intuitive visualizations
+- Explain uncertainty/confidence intervals
+- Focus on clinical implications, not statistics
+
+
+================================================================================
+4. OPTIMIZATION METHODS
+================================================================================
+
+
+LEAST SQUARES FITTING
+──────────────────────
+Objective: Minimize Sum of Squared Errors (SSE)
+
+SSE = Σ(y_observed[i] - y_predicted[i])²
+
+Python example:
+    from scipy.optimize import minimize
+    
+    def objective(params, t_obs, y_obs):
+        y_pred = simulate_model(t_obs, params)
+        return np.sum((y_obs - y_pred)**2)
+    
+    result = minimize(objective, x0=initial_guess, 
+                     args=(t_obs, y_obs), method='Nelder-Mead')
+    best_params = result.x
+
+WEIGHTED LEAST SQUARES
+──────────────────────
+When measurements have different precisions:
+
+WSSE = Σ w_i * (y_observed[i] - y_predicted[i])²
+
+Where w_i = 1/σ_i² (inverse variance weighting)
+
+Interpretation: Trust measurements with small variance more
+
+MAXIMUM LIKELIHOOD ESTIMATION (MLE)
+────────────────────────────────────
+More principled approach that accounts for measurement error distribution
+
+For normally distributed errors:
+    L = Product of [1/(σ*√(2π)) * exp(-(y_obs - y_pred)²/(2σ²))]
+    log-likelihood = -N/2*log(2π) - Σlog(σ_i) - Σ(y_obs-y_pred)²/(2σ_i²)
+
+Advantage: Provides natural uncertainty quantification
+Disadvantage: More complex, slower to compute
+
+NONLINEAR LEAST SQUARES
+───────────────────────
+Many PK models are nonlinear in parameters:
+    y = a*exp(-b*t) + c  ← parameters a,b,c enter nonlinearly
+
+Methods:
+- Gauss-Newton: Newton method for nonlinear regression
+- Levenberg-Marquardt: adaptive step-size, good for ill-conditioned problems
+- Trust-region: robust to poor starting values
+
+Available in scipy.optimize.curve_fit() for simple cases
+
+
+================================================================================
+5. MODEL VALIDATION
+================================================================================
+
+
+GOODNESS-OF-FIT METRICS
+───────────────────────
+
+1. R² (Coefficient of Determination)
+   R² = 1 - (SS_res / SS_tot)
+   Where SS_res = Σ(y_obs - y_pred)²
+         SS_tot = Σ(y_obs - mean(y_obs))²
+   
+   Range: 0 to 1 (higher is better)
+   Interpretation: proportion of variance explained
+   Pitfall: Can be artificially high with more parameters (use adjusted R²)
+
+2. RMSE (Root Mean Squared Error)
+   RMSE = √(1/n * Σ(y_obs - y_pred)²)
+   
+   Units: same as y (concentration, count, etc.)
+   Use: compare fit quality across models with same data
+
+3. AIC (Akaike Information Criterion)
+   AIC = 2k + n*log(SSE/n)
+   Where k = number of parameters, n = number of observations
+   
+   Use: Model comparison (lower AIC is better)
+   Benefit: penalizes complexity
+
+4. BIC (Bayesian Information Criterion)
+   BIC = k*log(n) + n*log(SSE/n)
+   
+   Like AIC but stronger penalty for complexity
+   Use: Model selection (lower is better)
+
+DIAGNOSTIC PLOTS - WHAT THEY TELL YOU
+──────────────────────────────────────
+
+1. OBSERVED vs PREDICTED
+   ├─ Good: points scatter around diagonal y=x line
+   └─ Bad: systematic deviations (curved pattern, outliers)
+
+2. RESIDUALS vs FITTED
+   ├─ Good: random scatter around y=0 line
+   ├─ Bad: curved pattern (model bias), funnel shape (heteroscedasticity)
+   └─ Action: may need model adjustment or transformation
+
+3. HISTOGRAM of RESIDUALS
+   ├─ Good: approximately normal distribution, centered at 0
+   ├─ Bad: bimodal, skewed, heavy tails
+   └─ Implies: measurement error not normally distributed
+
+4. Q-Q PLOT (Quantile-Quantile)
+   ├─ Good: points follow diagonal line
+   ├─ Bad: S-shape or departure at extremes
+   └─ Tests: normality of residuals
+
+5. SCALE-LOCATION PLOT
+   ├─ Good: random scatter, no trend
+   ├─ Bad: funnel or curved pattern
+   └─ Tests: homoscedasticity (constant variance)
+
+6. RESIDUALS vs ORDER
+   ├─ Good: random scatter
+   ├─ Bad: cyclic pattern, increasing/decreasing trend
+   └─ Tests: independence of measurements
+
+VISUAL PREDICTIVE CHECK (VPC)
+──────────────────────────────
+Advanced validation for population data:
+
+1. Simulate many subjects from fitted model
+2. For each observation time, compute percentiles (5th, 50th, 95th)
+3. Compare simulated percentiles to observed percentiles
+4. Observed percentiles should fall within simulated range
+
+Success: observed data fall within prediction interval
+Failure: systematic bias (try different model structure)
+
+PARAMETER IDENTIFIABILITY
+──────────────────────────
+Can all parameters be estimated from the data?
+
+Check with:
+1. Correlation matrix (high correlations = identification problem)
+2. Parameter confidence intervals (infinite = unidentifiable)
+3. Profile likelihood plots (flat = poorly identified)
+
+Solutions:
+- Fix poorly identified parameters to literature values
+- Reduce model complexity
+- Collect more/better data (different sampling times)
+
+
+================================================================================
+6. INTERVIEW Q&A
+================================================================================
+
+
+Q: "What's your background in mathematics/programming for modeling?"
+─────────────────────────────────────────────────────────────────────
+How to answer:
+✓ Mention specific coursework: differential equations, statistics, 
+  numerical methods, optimization
+✓ Software experience: Python (scipy, numpy), R, MATLAB
+✓ If limited: emphasize strong foundation in math and quick learning ability
+
+Q: "Tell me about a time you fit a model to data."
+──────────────────────────────────────────────────
+Structure your response:
+1. Context: "In my [course/project], I had [describe data]"
+2. Approach: "I used [specific model type] because [reason]"
+3. Technical details: "I implemented parameter estimation using [method] in [language]"
+4. Validation: "I validated with [diagnostic plots/metrics]"
+5. Result: "The model achieved R²=[value], explaining [interpretation]"
+6. Learning: "I learned that [key insight about modeling]"
+
+Q: "What's the difference between population and individual modeling?"
+──────────────────────────────────────────────────────────────────────
+Answer structure:
+- Individual: fit separate parameters to each subject, lots of data per subject
+- Population: estimate population mean/variance, often sparse data per subject
+- Mixed-effects: compromise, individual deviations from population parameters
+- Use NONMEM/Stan/nlmixr for population modeling
+- Example: cancer trial, 100 patients with only 3-5 samples each → population approach
+
+Q: "How do you choose between model structures?"
+───────────────────────────────────────────────
+Say:
+1. Start simple (one-compartment)
+2. Check fit quality (visual and statistical)
+3. If poor fit, increase complexity
+4. Use model comparison: AIC, BIC, likelihood ratio test
+5. Confirm biological plausibility
+6. Validate on independent data if possible
+
+Q: "What would you do if your model doesn't fit well?"
+───────────────────────────────────────────────────────
+Troubleshooting approach:
+1. Visual inspection: where's the model failing? (early, late, high, low concentrations)
+2. Diagnostic plots: is it a systematic problem?
+3. Check data quality: outliers, missing values, measurement errors?
+4. Consider model modifications:
+   - Add/change compartments
+   - Try nonlinear kinetics
+   - Account for time-varying parameters
+   - Consider disease-state or covariate effects
+5. Incorporate prior knowledge: fix some parameters to literature values
+6. Increase parameter estimation iterations/methods
+
+Q: "How do you handle parameter uncertainty?"
+──────────────────────────────────────────────
+Methods:
+1. Confidence intervals: standard errors from optimization Hessian matrix
+2. Bootstrap: resample data, refit model, examine parameter distribution
+3. Bayesian credible intervals: MCMC methods (pymc3, Stan)
+4. Profiling: scan each parameter while optimizing others
+5. Sensitivity analysis: simulation with perturbed parameters
+
+Interpretation: quantify how much estimates change with data perturbations
+
+Q: "What experience do you have with [tool: NONMEM/mrgsolve/nlmixr/stan/etc]?"
+────────────────────────────────────────────────────────────────────────────
+Honest answer preferred. Options:
+- If you know it: "I've used [tool] for [application] and found [advantage]"
+- If you don't: "I haven't used [tool] yet, but I have similar experience 
+  with [alternative] and I'm quick to learn new tools. Here's how I approach 
+  learning: [mention methodology]"
+
+Tools used in industry:
+- NONMEM: gold standard for population PK, but expensive, steep learning curve
+- R packages: nlmixr (free), mrgsolve (simulation)
+- Stan: Bayesian hierarchical modeling
+- Python: scipy, pymc3 for flexible modeling
+
+Q: "Why are you interested in this position?"
+──────────────────────────────────────────────
+Good answer should include:
+- Interest in pharmaceutical development specifically
+- Enthusiasm for translating math to clinical decisions
+- Specific interest in [their therapeutic area if you researched it]
+- Alignment with internship learning goals
+- Respect for their modeling expertise/contributions
+
+Example: "I'm interested in how mathematical modeling directly impacts 
+patient outcomes. At Amgen, I'd like to learn how you use modeling to 
+optimize doses and predict drug-drug interactions. I'm particularly 
+interested in your work in [research area]."
+
+Q: "What are your strengths and weaknesses?"
+──────────────────────────────────────────────
+Strengths:
+- Quantitative (specific: "strong at differential equations" not "math skills")
+- Problem-solving (give example)
+- Programming (mention languages)
+- Attention to detail in validation
+- Communication of technical results
+
+Weaknesses (use the "growth area" framing):
+- "I'm still developing expertise in [tool] but have strong fundamentals"
+- "I sometimes over-focus on perfect solutions; I'm learning to iterate"
+- "I haven't done population PK before, but I understand the principles"
+
+Q: "What questions do you have for us?"
+────────────────────────────────────────
+Good questions show you did research:
+- "What therapeutic areas does your team focus on?"
+- "What are the biggest challenges in your current projects?"
+- "How does your team use modeling to influence clinical decisions?"
+- "What tools do you primarily use? Is there a mix?"
+- "How do you validate models before regulatory submission?"
+- "What's the typical workflow from data to model recommendation?"
+- "Are there opportunities to present or publish modeling results?"
+
+
+================================================================================
+7. PRACTICAL EXAMPLES OVERVIEW
+================================================================================
+
+
+Your prepared example scripts demonstrate:
+
+1. ODE FITTING TUTORIAL (ode_fitting_tutorial.py)
+   ────────────────────────────────────────────────
+   What it covers:
+   - One-compartment PK model with synthetic data
+   - Parameter estimation using scipy.optimize.differential_evolution
+   - Diagnostic plots for model validation
+   - Two-compartment PK/PD model for tumor growth inhibition
+   - Error metrics (RMSE, R²) and interpretation
+   
+   Key skills demonstrated:
+   ✓ Ability to implement ODE systems in Python
+   ✓ Optimization for parameter estimation
+   ✓ Model validation through diagnostics
+   ✓ Understanding of PK/PD modeling
+
+2. ADVANCED EXAMPLES (advanced_ode_examples.py)
+   ──────────────────────────────────────────
+   What it covers:
+   - Cancer model with resistant population emergence
+   - Viral dynamics model with antiviral treatment  
+   - Sensitivity analysis (parameter impacts)
+   - Population heterogeneity modeling
+   - Interview Q&A guide
+   
+   Key skills demonstrated:
+   ✓ Complex biological systems modeling
+   ✓ Resistance/adaptation modeling
+   ✓ Population approaches
+   ✓ Sensitivity/uncertainty quantification
+
+TALKING POINTS FOR INTERVIEW:
+
+When showing/discussing these examples:
+
+"I created this to understand ODE fitting for clinical pharmacology. 
+It demonstrates:
+
+1. Mathematical modeling: I formulated compartmental models based on 
+   first-principles pharmacological principles
+   
+2. Practical implementation: I used Python's scipy.integrate for ODE 
+   solving and scipy.optimize for parameter fitting
+   
+3. Parameter estimation: I used global optimization (differential evolution) 
+   to find parameters that minimize model-data discrepancy
+   
+4. Model validation: I created diagnostic plots showing [mention specific 
+   diagnostics] to verify model assumptions
+   
+5. Biological realism: The models incorporate [mechanisms like drug resistance, 
+   viral dynamics] relevant to real clinical scenarios
+
+If asked about limitations, be honest:
+- "The synthetic data is noise-free, real data is messier"
+- "I used fixed some parameters; real problems require population methods"
+- "Simplified vs real NONMEM/Stan workflows"
+- "This is educational; real regulatory submissions need more rigor"
+
+Show you understand both the power and limitations of models.
+
+
+================================================================================
+8. STUDY GUIDE & RECOMMENDATIONS
+================================================================================
+
+
+PRIORITY TOPICS TO UNDERSTAND
+
+🔴 HIGH PRIORITY (must know)
+────────────────────────────
+1. ODE systems and compartmental models
+   - How to set up differential equations
+   - Interpretation of rate constants
+   - Analytical vs numerical solutions
+
+2. Parameter estimation
+   - Least squares optimization
+   - Concept of objective function
+   - Optimization algorithms and convergence
+
+3. Model validation
+   - Residual analysis
+   - Diagnostic plots interpretation
+   - Goodness-of-fit metrics (R², RMSE)
+
+4. PK fundamentals
+   - Absorption, distribution, metabolism, excretion (ADME)
+   - First-order vs zero-order kinetics
+   - Volume of distribution, clearance, half-life
+
+5. PD fundamentals
+   - Emax model
+   - Dose-response relationships
+   - Mechanism of drug action
+
+🟡 MEDIUM PRIORITY (should know)
+─────────────────────────────────
+1. Population PK concepts
+   - Fixed vs random effects
+   - Inter-individual variability
+   - Why population approaches are needed
+
+2. Model selection
+   - AIC, BIC, likelihood ratio tests
+   - Simplicity vs goodness-of-fit trade-off
+
+3. Nonlinear PK
+   - Michaelis-Menten kinetics
+   - When nonlinearity matters
+
+4. Time-varying parameters
+   - Disease progression
+   - Tolerance/adaptation
+
+5. Sensitivity analysis
+   - Parameter impacts on predictions
+   - Structural vs parameter uncertainty
+
+🟢 LOWER PRIORITY (nice to know)
+──────────────────────────────
+1. NONMEM specifics (if willing to learn)
+   - $PROBLEM, $INPUT blocks
+   - Error models, OMEGA/SIGMA
+
+2. Bayesian approaches (Stan, PyMC)
+3. Advanced dose-response models
+4. Physiologically-based PK (PBPK)
+5. Real-world complications (food effects, drug interactions)
+
+RECOMMENDED LEARNING SEQUENCE
+
+Week 1-2: Fundamentals
+─────────────────────
+□ Review differential equations (Khan Academy "differential equations")
+□ Study first-order ODE solutions analytically
+□ Understand one-compartment PK model
+□ Work through scipy.integrate.odeint tutorial
+
+Practice: Implement and solve dy/dt = -k*y manually and with odeint
+
+Week 3-4: Parameter Estimation
+───────────────────────────────
+□ Understand least squares principle
+□ Learn scipy.optimize methods (minimize, differential_evolution)
+□ Study example code in ode_fitting_tutorial.py
+□ Understand objective function design
+
+Practice: Fit one-compartment model to synthetic data
+
+Week 5: Model Validation
+────────────────────────
+□ Study diagnostic plot interpretation
+□ Understand R², RMSE calculations
+□ Learn residual analysis
+□ Review goodness-of-fit metrics
+
+Practice: Create diagnostic plots and interpret results
+
+Week 6-7: Advanced Topics
+─────────────────────────
+□ Study two-compartment models
+□ Learn PD model structures (Emax, indirect response)
+□ Understand PK/PD linking
+□ Review population concepts
+
+Practice: Fit two-compartment model, create PK/PD model
+
+Week 8: Interview Prep
+─────────────────────
+□ Review interview Q&A guide
+□ Practice explaining your example code
+□ Study Amgen-specific info (therapeutic areas, recent drug approvals)
+□ Prepare questions for interviewer
+
+Resources:
+──────────
+Textbooks:
+- "Pharmacokinetic and Pharmacodynamic Data Analysis" by Gabrielsson & Weiner
+- "Applied Pharmacokinetics and Pharmacodynamics" (free ASHP resource online)
+
+Online:
+- Khan Academy: Differential equations, linear algebra
+- scipy documentation: integration and optimization
+- YouTube: "PK/PD modeling" courses
+
+Software:
+- Python: scipy, numpy, pandas, matplotlib
+- R: mrgsolve package, nlmixr (beginner-friendly)
+
+Journal articles to skim:
+- Look for tutorials in "CPT: Pharmacometrics & Systems Pharmacology"
+- Find case studies of successful PK/PD modeling
+
+BEFORE YOUR INTERVIEW
+
+Day before:
+□ Review key definitions and equations
+□ Practice explaining your example code (5 min version, 15 min version)
+□ Prepare 2-3 specific examples of your work
+□ Research Amgen's recent approvals in their therapeutic areas
+□ Prepare thoughtful questions
+
+Day of:
+□ Get good sleep (tired brain won't solve problems well)
+□ Eat a good meal (stable blood sugar)
+□ Arrive early to calm your nerves
+□ Think positive: they invited you because you have potential
+
+During:
+□ Listen carefully to questions
+□ Think before answering (pause is okay)
+□ Ask clarifying questions if confused
+□ Show enthusiasm for modeling and helping patients
+□ Be honest about what you don't know yet
+
+Remember: They're hiring interns knowing you don't have all the expertise.
+They want to see:
+✓ Strong fundamentals in math and coding
+✓ Curiosity and willingness to learn
+✓ Problem-solving approach
+✓ Communication skills
+✓ Passion for the field
+
+
+================================================================================
+GOOD LUCK WITH YOUR INTERVIEW!
+================================================================================

@@ -1,0 +1,66 @@
+ODE FITTING FOR CLINICAL PHARMACOLOGY INTERVIEW
+======================================================================
+
+
+1. ODE SYSTEMS FOR PHARMACOLOGY
+   - Used to model drug concentrations, effects, and disease dynamics
+   - Multi-compartment models: central, peripheral, effect compartments
+   - Key parameters: absorption (k_a), distribution (V), elimination (k_e)
+
+2. PARAMETER ESTIMATION TECHNIQUES
+   - Optimization algorithms: least squares, maximum likelihood
+   - Global optimization: differential evolution, genetic algorithms
+   - Local optimization: Nelder-Mead, Powell
+   - Weighted vs unweighted fitting
+
+3. MODEL PERFORMANCE METRICS
+   - RMSE: magnitude of prediction errors
+   - R²: proportion of variance explained (0-1)
+   - MAE: average absolute error
+   - AIC/BIC: model comparison and complexity trade-off
+
+4. DIAGNOSTIC PLOTS INDICATE:
+   - Observed vs Predicted: how well model captures data
+   - Residuals: systematic biases (should be random)
+   - Q-Q plot: whether residuals are normally distributed
+   - Homoscedasticity: constant variance of residuals
+
+5. COMMON PK/PD MODELS
+   - Linear Compartmental Models: simple, interpretable
+   - Nonlinear PK: Michaelis-Menten elimination
+   - Pharmacodynamic: Emax model, indirect response models
+   - Time-to-event models: survival analysis
+
+6. BIOLOGICAL CONSIDERATIONS
+   - First-pass metabolism
+   - Protein binding effects
+   - Active metabolites
+   - Drug-drug interactions
+   - Disease state effects on PK/PD
+
+7. PRACTICAL IMPLEMENTATION
+   - Use scipy.integrate.odeint() for ODE solving
+   - scipy.optimize for parameter estimation
+   - Always validate on independent data
+   - Document assumptions and limitations
+
+8. QUESTIONS TO ASK INTERVIEWER
+   - What therapeutic areas do you focus on?
+   - What are common challenges in your modeling projects?
+   - How do you handle sparse sampling scenarios?
+   - What tools/languages does your team use? (NONMEM, mrgsolve, etc.)
+
+======================================================================
+
+EXPECTED PARAMETER RECOVERY IN SYNTHETIC EXAMPLES
+======================================================================
+
+One-Compartment PK Model:
+  True k_a: 0.5000 → Fitted: 0.5282
+  True k_e: 0.1000 → Fitted: 0.1032
+  Model R²: 0.9772
+
+Two-Compartment PK/PD Model:
+  True k_kill: 0.001000 → Fitted: 0.000306
+  True λ: 0.020000 → Fitted: 0.019883
+  Model R²: 0.9903
