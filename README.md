@@ -2,10 +2,7 @@
 ## Grad Intern Position at Amgen - R&D Department
 
 ---
-
-## 📋 What You Have
-
-Complete interview preparation materials for **ODE fitting in Python** with realistic pharmacology examples.
+Here is a complete interview preparation materials for **ODE fitting in Python** with realistic pharmacology examples.
 
 ### 🐍 Python Scripts (Runnable)
 
