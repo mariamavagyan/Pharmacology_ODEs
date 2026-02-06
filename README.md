@@ -1,5 +1,4 @@
 # Clinical Pharmacology Modeling & Simulation Interview Prep
-## Grad Intern Position at Amgen - R&D Department
 
 ---
 Here is a complete interview preparation materials for **ODE fitting in Python** with realistic pharmacology examples.
@@ -321,7 +320,5 @@ If you're stuck on concepts:
 - Modify the Python code to experiment
 
 ---
-
-**Created for Amgen R&D Clinical Pharmacology Modeling & Simulation Grad Intern Interview**
 
 *Last updated: February 2026*
